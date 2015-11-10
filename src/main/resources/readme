@@ -1,0 +1,54 @@
+模块说明：
+1、此模块是Dubbo 服务模块，添加此模块后，可以让应用具有dubbo 的远程RPC功能
+
+2、将 application-dubbo.properties 拷贝到应用的 src/main/resources 目录下，
+       作为属性文件，修改相应的配置信息，并加载属性配置文件。
+
+3、修改对应配置参数
+      （一） 提供方应用信息，用于计算依赖关系           dubbo.provider.name    例如：xinyi-provider
+      （二）使用zookeeper注册中心暴露服务地址        dubbo.registry.address 注册的Zoopkeeper地址 
+     	 例如：zookeeper://172.16.0.102:2181
+      （三）用dubbo协议在20880端口暴露服务     dubbo.registry.port   默认：20880
+      （四）扫描注解包路径，多个包用逗号分隔，不填pacakge表示扫描当前ApplicationContext中所有的类  
+       dubbo.annotation.scan.package
+                   例如：com.xinyi.spring_boot.annotation.provider   表示提供服务的文件夹
+                   
+4、如果是服务方则在主配置文件中，导入Dubbo的配置文件，例如在ApplicationContext.xml 
+	导入application-dubbo-provider.xml  如下：
+   <import resource="classpath*:application-dubbo-provider.xml" />
+
+加入此jar后，既可以作为服务端，也可作用在消费端，需要引入不同的配置文件
+服务端引入配置文件  <import resources="classpath*:application-dubbo-provider.xml"/>
+消费端引入配置文件  <import resources="classpath*:application-dubbo-consumer.xml"/>
+在application-dubbo.properties 中修改相应的配置信息即可。
+ 注意：不能在同一服务即引入服务器配置文件，又引入消费端配置文件。
+ 
+
+其它说明：注解的应用
+
+服务提供方注解：//**********************************
+// @Service(version="1.0.0", protocol ="dubbo") 最好是定义好版本号,方便用户调用,默认协议为"dubbo"
+import com.alibaba.dubbo.config.annotation.Service;
+ 
+@Service(version="1.0.0")
+public class FooServiceImpl implements FooService {
+ 
+    // ......
+}   
+
+服务消费方注解: //**********************************
+
+import com.alibaba.dubbo.config.annotation.Reference;
+import org.springframework.stereotype.Component;
+ 
+@Component
+public class BarAction {
+ 
+    @Reference(version="1.0.0")
+    private FooService fooService;
+ 
+}：
+
+<!-- 启用 dubbo monitor 的监控功能，需要在provider开发的spring配置xml文件里面增加以下标签-->
+<dubbo:monitor protocol="registry" />
+通过 dubbo-monitor-simple-2.5.4-SNAPSHOT 安装部署，可以对Dubbo的Service服务进行监控，统计调用次数。
